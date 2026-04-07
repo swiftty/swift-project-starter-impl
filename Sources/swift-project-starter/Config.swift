@@ -46,20 +46,23 @@ struct Config: Codable {
         }
 
         init(from decoder: any Decoder) throws {
-            self = try decode(from: decoder, choices: [
-                Application.to {
-                    Self.application(
-                        name: $0.name,
-                        projectRoot: $0.projectRoot,
-                        makefile: $0.makefile,
-                        xcoddgen: $0.xcodegen,
-                        resources: $0.resources
-                    )
-                },
-                Library.to {
-                    Self.library(resources: $0.resources)
-                }
-            ])
+            self = try decode(
+                from: decoder,
+                choices: [
+                    Application.to {
+                        Self.application(
+                            name: $0.name,
+                            projectRoot: $0.projectRoot,
+                            makefile: $0.makefile,
+                            xcoddgen: $0.xcodegen,
+                            resources: $0.resources,
+                        )
+                    },
+                    Library.to {
+                        Self.library(resources: $0.resources)
+                    },
+                ],
+            )
         }
 
         func encode(to encoder: any Encoder) throws {
@@ -70,7 +73,7 @@ struct Config: Codable {
                     projectRoot: projectRoot,
                     makefile: makefile,
                     xcodegen: xcodegen,
-                    resources: resources
+                    resources: resources,
                 )
                 try container.encode(to: encoder)
 
@@ -106,17 +109,20 @@ struct Config: Codable {
         }
 
         init(from decoder: any Decoder) throws {
-            self = try decode(from: decoder, choices: [
-                DefaultIsolation.to {
-                    Self.defaultIsolation($0.defaultIsolation)
-                },
-                EnableUpcomingFeature.to {
-                    Self.enableUpcomingFeature($0.enableUpcomingFeature)
-                },
-                EnableExperimentalFeature.to {
-                    Self.enableExperimentalFeature($0.enableExperimentalFeature)
-                }
-            ])
+            self = try decode(
+                from: decoder,
+                choices: [
+                    DefaultIsolation.to {
+                        Self.defaultIsolation($0.defaultIsolation)
+                    },
+                    EnableUpcomingFeature.to {
+                        Self.enableUpcomingFeature($0.enableUpcomingFeature)
+                    },
+                    EnableExperimentalFeature.to {
+                        Self.enableExperimentalFeature($0.enableExperimentalFeature)
+                    },
+                ],
+            )
         }
 
         func encode(to encoder: any Encoder) throws {

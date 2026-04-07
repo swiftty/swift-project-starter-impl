@@ -1,6 +1,6 @@
 import Foundation
-import ArgumentParser
-import System
+public import ArgumentParser
+public import System
 
 struct RootOption: ParsableArguments {
     @Option
@@ -21,7 +21,11 @@ struct RootOption: ParsableArguments {
     }
 }
 
-private func normalizePath(_ path: inout FilePath, fileName: FilePath.Component, with manager: FileManager) throws(ValidationError) {
+private func normalizePath(
+    _ path: inout FilePath,
+    fileName: FilePath.Component,
+    with manager: FileManager,
+) throws(ValidationError) {
     if path.lastComponent != fileName {
         var isDirectory: ObjCBool = false
         if !manager.fileExists(atPath: path.string, isDirectory: &isDirectory) {

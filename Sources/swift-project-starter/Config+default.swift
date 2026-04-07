@@ -21,8 +21,8 @@ extension Config {
                     .`WorkspaceSettings.xcsettings`(name: name),
                     .`.gitignore`(path: "Sources"),
                     .`.gitignore`(path: "Resources"),
-                    .`.swift-format`
-                ]
+                    .`.swift-format`,
+                ],
             ),
             dependencies: [
                 .init(url: "https://github.com/swiftty/XcodeGenBinary", from: "2.45.3"),
@@ -31,8 +31,8 @@ extension Config {
             swiftSettings: [
                 .defaultIsolation(.MainActor),
                 .enableUpcomingFeature("InternalImportsByDefault"),
-                .enableUpcomingFeature("NonisolatedNonsendingByDefault")
-            ]
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+            ],
         )
     }
 
@@ -43,12 +43,12 @@ extension Config {
             ]
         ),
         dependencies: [
-            .init(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
+            .init(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0")
         ],
         swiftSettings: [
             .enableUpcomingFeature("InternalImportsByDefault"),
-            .enableUpcomingFeature("NonisolatedNonsendingByDefault")
-        ]
+            .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+        ],
     )
 }
 
@@ -60,33 +60,33 @@ extension Config.Makefile {
     ) -> Self {
         Self.init(
             content: """
-            PROJECT_NAME := \(projectName)
-            PACKAGE_DIR := \(packageDirectory.string)
-            XCODE_PROJECT := $(PROJECT_NAME).xcodeproj
-            XCUSERDATA_DIR := $(XCODE_PROJECT)/project.xcworkspace/xcuserdata/$(shell whoami).xcuserdatad
-            XCSHAREDDATA_DIR := $(XCODE_PROJECT)/project.xcworkspace/xcshareddata
+                PROJECT_NAME := \(projectName)
+                PACKAGE_DIR := \(packageDirectory.string)
+                XCODE_PROJECT := $(PROJECT_NAME).xcodeproj
+                XCUSERDATA_DIR := $(XCODE_PROJECT)/project.xcworkspace/xcuserdata/$(shell whoami).xcuserdatad
+                XCSHAREDDATA_DIR := $(XCODE_PROJECT)/project.xcworkspace/xcshareddata
 
-            SWIFT = swift$(1) --package-path $(PACKAGE_DIR) --build-path DerivedData/$(PROJECT_NAME)/SourcePackages
-            
-            .PHONY: project
-            project:
-            \t@$(call SWIFT, package) plugin --allow-writing-to-directory . xcodegen
+                SWIFT = swift$(1) --package-path $(PACKAGE_DIR) --build-path DerivedData/$(PROJECT_NAME)/SourcePackages
 
-            \t@mkdir -p $(XCUSERDATA_DIR)
-            \t@cp -f $(XCSHAREDDATA_DIR)/WorkspaceSettings.xcsettings $(XCUSERDATA_DIR)/WorkspaceSettings.xcsettings
-            
-            .PHONY: format
-            format:
-            \t@$(call SWIFT, package) plugin --allow-writing-to-package-directory --allow-writing-to-directory \(projectRoot.string) format-source-code
+                .PHONY: project
+                project:
+                \t@$(call SWIFT, package) plugin --allow-writing-to-directory . xcodegen
 
-            .PHONY: test
-            test:
-            \t$(call SWIFT, test)
+                \t@mkdir -p $(XCUSERDATA_DIR)
+                \t@cp -f $(XCSHAREDDATA_DIR)/WorkspaceSettings.xcsettings $(XCUSERDATA_DIR)/WorkspaceSettings.xcsettings
 
-            .PHONY: resolve
-            resolve:
-            \t$(call SWIFT, package) resolve
-            """
+                .PHONY: format
+                format:
+                \t@$(call SWIFT, package) plugin --allow-writing-to-package-directory --allow-writing-to-directory \(projectRoot.string) format-source-code
+
+                .PHONY: test
+                test:
+                \t$(call SWIFT, test)
+
+                .PHONY: resolve
+                resolve:
+                \t$(call SWIFT, package) resolve
+                """
         )
     }
 }
@@ -96,55 +96,56 @@ extension Config.XcodeGen {
         projectName: String,
         packageDirectory: FilePath.Component,
     ) -> Self {
-        Self.init(content: """
-        name: \(projectName)
+        Self.init(
+            content: """
+                name: \(projectName)
 
-        # base settings
-        # configs
-        configs:
-          Debug: debug
-          Release: release
+                # base settings
+                # configs
+                configs:
+                  Debug: debug
+                  Release: release
 
-        # settings
-        settings:
-          base:
-            VERSIONING_SYSTEM: apple-generic
-          configs:
-            Debug:
-              OTHER_SWIFT_FLAGS: -DDEBUG
+                # settings
+                settings:
+                  base:
+                    VERSIONING_SYSTEM: apple-generic
+                  configs:
+                    Debug:
+                      OTHER_SWIFT_FLAGS: -DDEBUG
 
-        options:
-          bundleIdPrefix: <$ bundle id prefix $>
-          developmentLanguage: ja
-          localPackagesGroup: ""
+                options:
+                  bundleIdPrefix: <$ bundle id prefix $>
+                  developmentLanguage: ja
+                  localPackagesGroup: ""
 
-        packages:
-          \(packageDirectory.string):
-            path: \(packageDirectory.string)
+                packages:
+                  \(packageDirectory.string):
+                    path: \(packageDirectory.string)
 
-        targets:
-          HostApp:
-            type: application
-            platform: <$ platform $>
-            settings:
-              base:
-                GENERATE_INFOPLIST_FILE: YES
-                ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-                SWIFT_VERSION: "6"
-              configs:
-                Debug:
-                  INFOPLIST_PREPROCESS: YES
-            sources:
-              - Sources
-              - Resources
-              - path: project.yml
-                group: Configurations
-                buildPhase: none
-            dependencies:
-              - package: \(packageDirectory.string)
-                product: <$ package product $>
+                targets:
+                  HostApp:
+                    type: application
+                    platform: <$ platform $>
+                    settings:
+                      base:
+                        GENERATE_INFOPLIST_FILE: YES
+                        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+                        SWIFT_VERSION: "6"
+                      configs:
+                        Debug:
+                          INFOPLIST_PREPROCESS: YES
+                    sources:
+                      - Sources
+                      - Resources
+                      - path: project.yml
+                        group: Configurations
+                        buildPhase: none
+                    dependencies:
+                      - package: \(packageDirectory.string)
+                        product: <$ package product $>
 
-        """)
+                """)
     }
 }
 
@@ -152,38 +153,41 @@ extension Config.Project.File {
     static let `.swift-format` = Self.init(
         filePath: ".swift-format",
         content: """
-        {
-          "indentation": {
-            "spaces": 4
-          },
-          "lineLength": 120,
-          "rules": {
-            "NoAccessLevelOnExtensionDeclaration": false
-          },
-          "version": 1
-        }
-        """
+            {
+              "indentation": {
+                "spaces": 4
+              },
+              "lineLength": 120,
+              "multilineTrailingCommaBehavior": "alwaysUsed",
+              "multiElementCollectionTrailingCommas": false,
+              "rules": {
+                "NoAccessLevelOnExtensionDeclaration": false
+              },
+              "version": 1
+            }
+
+            """,
     )
 
     static func `WorkspaceSettings.xcsettings`(name: String) -> Self {
         Self.init(
             filePath: "\(name).xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings",
             content: """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-            \t<key>BuildLocationStyle</key>
-            \t<string>UseAppPreferences</string>
-            \t<key>CustomBuildLocationType</key>
-            \t<string>RelativeToDerivedData</string>
-            \t<key>DerivedDataCustomLocation</key>
-            \t<string>DerivedData</string>
-            \t<key>DerivedDataLocationStyle</key>
-            \t<string>WorkspaceRelativePath</string>
-            </dict>
-            </plist>  
-            """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                <plist version="1.0">
+                <dict>
+                \t<key>BuildLocationStyle</key>
+                \t<string>UseAppPreferences</string>
+                \t<key>CustomBuildLocationType</key>
+                \t<string>RelativeToDerivedData</string>
+                \t<key>DerivedDataCustomLocation</key>
+                \t<string>DerivedData</string>
+                \t<key>DerivedDataLocationStyle</key>
+                \t<string>WorkspaceRelativePath</string>
+                </dict>
+                </plist>  
+                """,
         )
     }
 

@@ -23,7 +23,8 @@ struct ProjectOption: ParsableArguments {
         if case .application(_, let projectRoot, _, _, _) = config.project {
             let path = FilePath(projectRoot)
             if path.isAbsolute {
-                throw ValidationError("Error: Project root path '\(projectRoot)' must be relative from '--package-path'")
+                throw ValidationError(
+                    "Error: Project root path '\(projectRoot)' must be relative from '--package-path'")
             }
         }
     }
