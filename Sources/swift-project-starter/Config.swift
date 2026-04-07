@@ -13,7 +13,9 @@ struct Config: Codable {
             xcoddgen: XcodeGen?,
             resources: [File],
         )
-        case library
+        case library(
+            resources: [File]
+        )
 
         struct File: Codable {
             /// relative to projectRoot
@@ -40,6 +42,7 @@ struct Config: Codable {
 
         private struct Library: Codable {
             var type = "library"
+            var resources: [File]
         }
 
         init(from decoder: any Decoder) throws {
@@ -53,8 +56,8 @@ struct Config: Codable {
                         resources: $0.resources
                     )
                 },
-                Library.to { _ in
-                    Self.library
+                Library.to {
+                    Self.library(resources: $0.resources)
                 }
             ])
         }
@@ -71,8 +74,8 @@ struct Config: Codable {
                 )
                 try container.encode(to: encoder)
 
-            case .library:
-                let container = Library()
+            case .library(let resources):
+                let container = Library(resources: resources)
                 try container.encode(to: encoder)
             }
         }

@@ -37,7 +37,11 @@ extension Config {
     }
 
     static let forLibraryDefault = Self.init(
-        project: .library,
+        project: .library(
+            resources: [
+                .`.swift-format`
+            ]
+        ),
         dependencies: [
             .init(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
         ],

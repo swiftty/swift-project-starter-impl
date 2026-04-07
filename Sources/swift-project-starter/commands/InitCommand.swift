@@ -79,8 +79,12 @@ private extension Config.Project {
                 return resource
             }
 
-        case .library:
-            return []
+        case .library(let resources):
+            return resources.map {
+                var resource = $0
+                resource.filePath = packagePath.appending(resource.filePath).string
+                return resource
+            }
         }
     }
 }
