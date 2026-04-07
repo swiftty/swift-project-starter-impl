@@ -16,6 +16,7 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-subprocess", from: "0.4.0"),
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.1.0"),
+        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
     ],
     targets: [
         .executableTarget(
@@ -32,3 +33,29 @@ let package = Package(
     ],
     swiftLanguageModes: [.v6]
 )
+
+// BEGIN AUTO GENERATED: swift-project-starter
+for target in package.targets {
+    if [.executable, .test, .regular].contains(target.type) {
+        do {
+            var swiftSettings = target.swiftSettings ?? []
+            defer {
+                target.swiftSettings = swiftSettings
+            }
+            swiftSettings += [
+                .enableUpcomingFeature("InternalImportsByDefault"),
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault")
+            ]
+        }
+        do {
+            var plugins = target.plugins ?? []
+            defer {
+                target.plugins = plugins
+            }
+            plugins += [
+                .plugin(name: "Lint", package: "swift-format-plugin")
+            ]
+        }
+    }
+}
+// END AUTO GENERATED: swift-project-starter
