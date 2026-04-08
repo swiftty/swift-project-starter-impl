@@ -9,32 +9,43 @@ let package = Package(
         .macOS(.v26)
     ],
     products: [
-        .executable(name: "swift-project-starter", targets: ["swift-project-starter"])
+        .plugin(name: "swift-project-starter-plugin", targets: ["swift-project-starter-plugin"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.0"),
-        .package(url: "https://github.com/swiftlang/swift-subprocess", from: "0.4.0"),
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.1.0"),
-        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
+        // BEGIN AUTO GENERATED: swift-project-starter: deps
+        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0")
+        // END AUTO GENERATED: swift-project-starter: deps
     ],
     targets: [
         .executableTarget(
             name: "swift-project-starter",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "Subprocess", package: "swift-subprocess"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
+                .product(name: "SwiftRefactor", package: "swift-syntax"),
                 .product(name: "Logging", package: "swift-log"),
             ]
-        )
+        ),
+        .plugin(
+            name: "swift-project-starter-plugin",
+            capability: .command(
+                intent: .custom(verb: "starter", description: ""),
+                permissions: [.writeToPackageDirectory(reason: "")]
+            ),
+            dependencies: [
+                "swift-project-starter"
+            ]
+        ),
     ],
     swiftLanguageModes: [.v6]
 )
 
-// BEGIN AUTO GENERATED: swift-project-starter
+// BEGIN AUTO GENERATED: swift-project-starter: settings
 for target in package.targets {
     if [.executable, .test, .regular].contains(target.type) {
         do {
@@ -58,4 +69,4 @@ for target in package.targets {
         }
     }
 }
-// END AUTO GENERATED: swift-project-starter
+// END AUTO GENERATED: swift-project-starter: settings

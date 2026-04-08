@@ -1,7 +1,6 @@
 import Foundation
 import System
 import ArgumentParser
-import Subprocess
 
 struct DefaultConfigCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
