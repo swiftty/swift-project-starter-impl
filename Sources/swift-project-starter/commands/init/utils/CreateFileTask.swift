@@ -3,10 +3,14 @@ import System
 import Logging
 import ArgumentParser
 
-struct CreateFileTask {
-    var path: FilePath
-    var content: String
+extension InitCommand {
+    struct CreateFileTask {
+        var path: FilePath
+        var content: String
+    }
+}
 
+extension InitCommand.CreateFileTask {
     func run() async throws {
         Logger.currentScope?.info("creating file: \(path.lastComponent?.string ?? "<unknown>")")
 
