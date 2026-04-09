@@ -8,7 +8,7 @@ struct ProjectOption: ParsableArguments {
     }
 
     @Option
-    var project: ProjectType
+    var project: ProjectType?
 
     @Option
     var projectName: String?
@@ -30,6 +30,16 @@ struct ProjectOption: ParsableArguments {
     }
 
     func asConfig() throws -> Config {
+        if let configPath = options.configPath {
+            let data = try Data(contentsOf: URL(filePath: configPath)!)
+            let decoder = JSONDecoder()
+            return try decoder.decode(Config.self, from: data)
+        }
+
+        guard let project else {
+            throw ValidationError("Error: Missing expected argument '--project <project>' or '--config-path <config-path>'")
+        }
+
         switch project {
         case .application:
             guard let projectName else {

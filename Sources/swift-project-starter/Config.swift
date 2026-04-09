@@ -171,8 +171,7 @@ private extension Decodable {
         return { decoder in
             do {
                 return transform(try Self.init(from: decoder))
-            } catch DecodingError.keyNotFound(let keys, let context) {
-                print(keys, context)
+            } catch DecodingError.keyNotFound {
                 return nil
             }
         }

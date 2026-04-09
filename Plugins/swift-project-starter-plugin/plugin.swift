@@ -8,11 +8,10 @@ struct Plugin: CommandPlugin {
         let process = try Process.run(executableURL, arguments: arguments)
         process.waitUntilExit()
 
-        if process.terminationReason == .exit && process.terminationStatus == 0 {
-          print("success.")
-        } else {
-          let problem = "\(process.terminationReason):\(process.terminationStatus)"
-          Diagnostics.error("invocation failed: \(problem)")
+        guard process.terminationReason == .exit && process.terminationStatus == 0 else {
+            let problem = "\(process.terminationReason): \(process.terminationStatus)"
+            Diagnostics.error("invocation failed: \(problem)")
+            return
         }
     }
 }

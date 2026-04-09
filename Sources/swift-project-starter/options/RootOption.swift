@@ -32,7 +32,7 @@ private func normalizePath(
             throw ValidationError("\(path) is not a valid path.")
         }
         if isDirectory.boolValue {
-            path.append("Package.swift")
+            path.append(fileName)
         }
     }
 
