@@ -26,14 +26,8 @@ struct InitCommand: AsyncParsableCommand {
         // install dependencies
         if case let dependencies = config.dependencies, !dependencies.isEmpty {
             Logger.currentScope?.info("install dependencies")
-            // TODO: refactor
-            for dep in dependencies {
-                Logger.currentScope?.info("installing dependency: \(dep.url)")
-                let task = InstallDependencyTask(dependencies: [dep], packagePath: options.packagePath)
-                try await task.run()
-
-                Logger.currentScope?.info("installed dependency: \(dep.url)")
-            }
+            let task = InstallDependencyTask(dependencies: dependencies, packagePath: options.packagePath)
+            try await task.run()
         }
 
         // insert swiftSettings to Package.swift
