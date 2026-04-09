@@ -1,14 +1,14 @@
 import System
 import SwiftSyntax
 
+private let beginMarker = "AUTO GENERATED ↓: swift-project-starter: settings"
+private let endMarker = "AUTO GENERATED ↑: swift-project-starter: settings"
+
 extension InitCommand {
     struct InsertSettingAndPluginTask: InitCommand.SwiftSyntaxTask {
         var packagePath: FilePath
         var swiftSettings: [Config.SwiftSetting]
         var hasSwiftFormatPlugin: Bool
-
-        private let beginMarker = "BEGIN AUTO GENERATED: swift-project-starter: settings"
-        private let endMarker = "END AUTO GENERATED: swift-project-starter: settings"
     }
 }
 

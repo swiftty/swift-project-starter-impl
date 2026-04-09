@@ -2,8 +2,8 @@ import System
 import SwiftSyntax
 import Logging
 
-private let beginMarker = "BEGIN AUTO GENERATED: swift-project-starter: deps"
-private let endMarker = "END AUTO GENERATED: swift-project-starter: deps"
+private let beginMarker = "AUTO GENERATED ↓: swift-project-starter: deps"
+private let endMarker = "AUTO GENERATED ↑: swift-project-starter: deps"
 
 extension InitCommand {
     struct InstallDependencyTask: InitCommand.SwiftSyntaxTask {

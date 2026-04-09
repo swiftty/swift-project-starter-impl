@@ -15,9 +15,9 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.0"),
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.1.0"),
-        // BEGIN AUTO GENERATED: swift-project-starter: deps
+        // AUTO GENERATED ↓: swift-project-starter: deps
         .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0")
-        // END AUTO GENERATED: swift-project-starter: deps
+        // AUTO GENERATED ↑: swift-project-starter: deps
     ],
     targets: [
         .executableTarget(
@@ -45,7 +45,7 @@ let package = Package(
     swiftLanguageModes: [.v6]
 )
 
-// BEGIN AUTO GENERATED: swift-project-starter: settings
+// AUTO GENERATED ↓: swift-project-starter: settings
 for target in package.targets {
     if [.executable, .test, .regular].contains(target.type) {
         do {
@@ -69,4 +69,4 @@ for target in package.targets {
         }
     }
 }
-// END AUTO GENERATED: swift-project-starter: settings
+// AUTO GENERATED ↑: swift-project-starter: settings
