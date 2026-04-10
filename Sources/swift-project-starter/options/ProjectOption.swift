@@ -37,7 +37,8 @@ struct ProjectOption: ParsableArguments {
         }
 
         guard let project else {
-            throw ValidationError("Error: Missing expected argument '--project <project>' or '--config-path <config-path>'")
+            throw ValidationError(
+                "Error: Missing expected argument '--project <project>' or '--config-path <config-path>'")
         }
 
         switch project {
