@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.2.4
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "swift-project-starter",
     platforms: [
-        .macOS(.v26)
+        .macOS(.v15)
     ],
     products: [
         .plugin(name: "swift-project-starter-plugin", targets: ["swift-project-starter-plugin"])
@@ -16,7 +16,7 @@ let package = Package(
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.1.0"),
         // AUTO GENERATED ↓: swift-project-starter: deps
-        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0")
+        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
         // AUTO GENERATED ↑: swift-project-starter: deps
     ],
     targets: [
@@ -29,7 +29,7 @@ let package = Package(
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "SwiftRefactor", package: "swift-syntax"),
                 .product(name: "Logging", package: "swift-log"),
-            ]
+            ],
         ),
 
         .testTarget(
@@ -37,7 +37,7 @@ let package = Package(
             dependencies: [
                 "swift-project-starter"
             ],
-            exclude: ["fixtures"]
+            exclude: ["fixtures"],
         ),
 
         .plugin(
@@ -45,18 +45,18 @@ let package = Package(
             capability: .command(
                 intent: .custom(
                     verb: "starter",
-                    description: "This command generates a starter file for your project."
+                    description: "This command generates a starter file for your project.",
                 ),
                 permissions: [
                     .writeToPackageDirectory(reason: "This command generates a starter file for your project.")
-                ]
+                ],
             ),
             dependencies: [
                 "swift-project-starter"
-            ]
+            ],
         ),
     ],
-    swiftLanguageModes: [.v6]
+    swiftLanguageModes: [.v6],
 )
 
 // AUTO GENERATED ↓: swift-project-starter: settings
@@ -69,7 +69,7 @@ for target in package.targets {
             }
             swiftSettings += [
                 .enableUpcomingFeature("InternalImportsByDefault"),
-                .enableUpcomingFeature("NonisolatedNonsendingByDefault")
+                .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
             ]
         }
         do {
