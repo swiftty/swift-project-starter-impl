@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
 
     steps:
       - uses: actions/checkout@v6
@@ -23,7 +23,7 @@ jobs:
       - name: Select Xcode
         shell: bash
         run: |
-          sudo xcode-select --switch "/Applications/Xcode_26.3.app"
+          sudo xcode-select --switch "/Applications/Xcode_26.4.app"
       - name: Run tests
         run: |
           xcodebuild clean test \
