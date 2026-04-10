@@ -43,8 +43,10 @@ extension InitCommand {
             checkMarker(piece)
         }
 
-        @specialized(where C == ArrayElementListSyntax)
-        @specialized(where C == CodeBlockItemListSyntax)
+        #if swift(>=6.3)
+            @specialized(where C == ArrayElementListSyntax)
+            @specialized(where C == CodeBlockItemListSyntax)
+        #endif
         func callAsFunction(_ collection: C) -> (passed: [C.Element], filtered: [C.Element]) {
             var passed: [C.Element] = []
             var filtered: [C.Element] = []
