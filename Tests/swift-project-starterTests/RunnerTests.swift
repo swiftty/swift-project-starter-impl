@@ -18,18 +18,29 @@ var productsDirectory: URL {
     #endif
 }
 
+private struct ProjectSetting {
+    @TaskLocal static var currentScope: ProjectSetting?
+
+    var name: String
+    var currentDirectory: URL
+
+    var workingDirectory: URL { currentDirectory.appending(path: name) }
+}
+
 struct `swift-project-starterTests` {
-    private func exec(_ subcommand: String, arguments: [String], on target: String) throws -> (
+    private func exec(_ subcommand: String, arguments: [String]) throws -> (
         stdout: String,
         stderr: String
     ) {
+        let setting = try #require(ProjectSetting.currentScope)
+
         let bin = productsDirectory.appending(path: "swift-project-starter")
 
         let stdout = Pipe()
         let stderr = Pipe()
         let process = try shell(
             bin, ["init"] + arguments,
-            currentDirectoryURL: fixturesDirectory.appending(path: target),
+            currentDirectoryURL: setting.workingDirectory,
             stdout: stdout, stderr: stderr,
         )
 
@@ -45,6 +56,7 @@ struct `swift-project-starterTests` {
 
     @Test(
         .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .addEmptyDependency,
         arguments: [
             ([], "Error: Missing expected argument '--package-path <package-path>'"),
             (
@@ -54,23 +66,55 @@ struct `swift-project-starterTests` {
         ],
     )
     func `test init command requires option`(_ arguments: [String], _ expected: String) throws {
-        let (_, error) = try exec("init", arguments: arguments, on: "Example")
+        let (_, error) = try exec("init", arguments: arguments)
         #expect(error.contains(expected))
+    }
+
+    @Test(
+        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .addEmptyDependency,
+    )
+    func `test init command runs success`() throws {
+        let (output, _) = try exec("init", arguments: ["--package-path", ".", "--project", "library"])
+        #expect(output.contains("✅"))
     }
 }
 
 extension Trait where Self == SwiftPMSetupTrait {
     static func setupSwiftPackage(
         name: String,
-        to currentDirectory: URL? = nil,
+        to currentDirectory: URL,
     ) -> Self {
         SwiftPMSetupTrait(name: name, currentDirectory: currentDirectory)
     }
 }
 
+extension Trait where Self == AddEmptyDependencyTrait {
+    /// add `dependencies: [],` to Package.swift
+    static var addEmptyDependency: Self { .init() }
+}
+
 struct SwiftPMSetupTrait: TestTrait, TestScoping {
     var name: String
-    var currentDirectory: URL?
+    var currentDirectory: URL
+
+    func provideScope(
+        for test: Test,
+        testCase: Test.Case?,
+        performing function: @concurrent () async throws -> Void,
+    ) async throws {
+        try setUp()
+        do {
+            try await ProjectSetting.$currentScope.withValue(.init(name: name, currentDirectory: currentDirectory)) {
+                try await function()
+            }
+        } catch {
+            try tearDown()
+            throw error
+        }
+
+        try tearDown()
+    }
 
     private func setUp() throws {
         try shell(
@@ -81,7 +125,7 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
         try shell(
             URL(filePath: "/usr/bin/env"),
             "swift", "package", "init", "--type", "library",
-            currentDirectoryURL: currentDirectory?.appending(path: name),
+            currentDirectoryURL: currentDirectory.appending(path: name),
         ).waitUntilExit()
     }
 
@@ -92,21 +136,27 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
             currentDirectoryURL: currentDirectory,
         ).waitUntilExit()
     }
+}
 
+struct AddEmptyDependencyTrait: TestTrait, TestScoping {
     func provideScope(
         for test: Test,
         testCase: Test.Case?,
         performing function: @concurrent () async throws -> Void,
     ) async throws {
-        try setUp()
-        do {
-            try await function()
-        } catch {
-            try tearDown()
-            throw error
-        }
+        try modifyPackageSwift()
+        try await function()
+    }
 
-        try tearDown()
+    private func modifyPackageSwift() throws {
+        let setting = try #require(ProjectSetting.currentScope)
+        let packagePath = setting.workingDirectory.appending(path: "Package.swift")
+        var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
+
+        let insertText = "\n    dependencies: [],"
+        let markerText = "\n    targets: ["
+        packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
+        try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
     }
 }
 
@@ -121,7 +171,8 @@ func shell(
     try shell(
         executableURL, arguments,
         currentDirectoryURL: currentDirectoryURL,
-        stdout: stdout, stderr: stderr, )
+        stdout: stdout, stderr: stderr,
+    )
 }
 
 @discardableResult
