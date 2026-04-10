@@ -31,11 +31,25 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
             ]
         ),
+
+        .testTarget(
+            name: "swift-project-starterTests",
+            dependencies: [
+                "swift-project-starter"
+            ],
+            exclude: ["fixtures"]
+        ),
+
         .plugin(
             name: "swift-project-starter-plugin",
             capability: .command(
-                intent: .custom(verb: "starter", description: ""),
-                permissions: [.writeToPackageDirectory(reason: "")]
+                intent: .custom(
+                    verb: "starter",
+                    description: "This command generates a starter file for your project."
+                ),
+                permissions: [
+                    .writeToPackageDirectory(reason: "This command generates a starter file for your project.")
+                ]
             ),
             dependencies: [
                 "swift-project-starter"
