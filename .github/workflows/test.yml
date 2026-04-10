@@ -29,4 +29,5 @@ jobs:
           xcodebuild clean test \
             -scheme swift-project-starter \
             -destination "platform=macOS" \
-            -clonedSourcePackagesDirPath .build
+            -clonedSourcePackagesDirPath .build \
+            -skipPackagePluginValidation
