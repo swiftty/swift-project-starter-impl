@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "local>swiftty/renovate-config"
+    "config:recommended",
+    "github>swiftty/renovate-xcodereleases"
   ]
 }
