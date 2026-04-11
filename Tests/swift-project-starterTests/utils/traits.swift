@@ -4,9 +4,9 @@ import Testing
 extension Trait where Self == SwiftPMSetupTrait {
     static func setupSwiftPackage(
         name: String,
-        to currentDirectory: URL,
+        to parent: URL,
     ) -> Self {
-        SwiftPMSetupTrait(name: name, currentDirectory: currentDirectory)
+        SwiftPMSetupTrait(name: name, parent: parent)
     }
 }
 
@@ -21,18 +21,29 @@ extension Trait where Self == CreateFileTrait {
     }
 }
 
+// MARK: -
+
+struct DirectoryScope {
+    @TaskLocal static var current: DirectoryScope?
+
+    var name: String
+    var parent: URL
+
+    var workingDirectory: URL { parent.appending(path: name) }
+}
+
 struct SwiftPMSetupTrait: TestTrait, TestScoping {
     var name: String
-    var currentDirectory: URL
+    var parent: URL
 
-    init(name: String, random: Bool = true, currentDirectory: URL) {
+    init(name: String, random: Bool = true, parent: URL) {
         self.name =
             if random {
                 "\(name)\(UUID().uuidString.prefix(4))"
             } else {
                 name
             }
-        self.currentDirectory = currentDirectory
+        self.parent = parent
     }
 
     func provideScope(
@@ -42,7 +53,7 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
     ) async throws {
         try setUp()
         do {
-            try await ProjectSetting.$currentScope.withValue(.init(name: name, currentDirectory: currentDirectory)) {
+            try await DirectoryScope.$current.withValue(.init(name: name, parent: parent)) {
                 try await function()
             }
         } catch {
@@ -56,18 +67,18 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
     private func setUp() throws {
         try shell(
             "mkdir", "-p", name,
-            currentDirectoryURL: currentDirectory,
+            currentDirectoryURL: parent,
         ).waitUntilExit()
         try shell(
             "swift", "package", "init", "--type", "library",
-            currentDirectoryURL: currentDirectory.appending(path: name),
+            currentDirectoryURL: parent.appending(path: name),
         ).waitUntilExit()
     }
 
     private func tearDown() throws {
         try shell(
             "rm", "-rf", name,
-            currentDirectoryURL: currentDirectory,
+            currentDirectoryURL: parent,
         ).waitUntilExit()
     }
 }
@@ -83,7 +94,7 @@ struct AddEmptyDependencyTrait: TestTrait, TestScoping {
     }
 
     private func modifyPackageSwift() throws {
-        let setting = try #require(ProjectSetting.currentScope)
+        let setting = try #require(DirectoryScope.current)
         let packagePath = setting.workingDirectory.appending(path: "Package.swift")
         var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
 
@@ -103,7 +114,7 @@ struct CreateFileTrait: TestTrait, TestScoping {
         testCase: Test.Case?,
         performing function: @concurrent () async throws -> Void,
     ) async throws {
-        let setting = try #require(ProjectSetting.currentScope)
+        let setting = try #require(DirectoryScope.current)
         let filePath = setting.workingDirectory
             .appending(path: name)
             .path(percentEncoded: false)
