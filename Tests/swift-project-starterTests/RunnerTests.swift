@@ -37,7 +37,8 @@ struct `swift-project-starterTests` {
     }
 
     @Test(
-        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
         .addEmptyDependency,
         arguments: [
             ([], "Error: Missing expected argument '--package-path <package-path>'"),
@@ -53,21 +54,23 @@ struct `swift-project-starterTests` {
     }
 
     @Test(
-        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
         .addEmptyDependency,
     )
-    func `test init command runs success`() throws {
+    func `test init command succeeds for library type`() throws {
         let (output, _) = try exec("init", "--package-path", ".", "--project", "library")
         #expect(output.contains("✅"))
         #expect(!output.contains("❌"))
     }
 
     @Test(
-        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
         .addEmptyDependency,
         .createFile(name: ".swift-format"),
     )
-    func `test init command runs partially success`() throws {
+    func `test init command succeeds for library type partially overriding`() throws {
         let (output, _) = try exec("init", "--package-path", ".", "--project", "library")
         #expect(output.contains("✅"))
         #expect(output.contains("❌ : '.swift-format' already exists"))
@@ -77,5 +80,47 @@ struct `swift-project-starterTests` {
                 .appending(path: ".swift-format")
         )
         #expect(try String(contentsOf: path, encoding: .utf8) == "")
+    }
+
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "LocalPackage", random: false),
+        .setupSwiftPackage,
+        .addEmptyDependency,
+        arguments: [
+            (
+                ["--package-path", "."],
+                "Error: Missing expected argument '--project-name <name>'",
+            )
+        ],
+    )
+    func `test init command requires option for application type`(_ arguments: [String], _ expected: String) throws {
+        let (_, error) = try exec("init", arguments + ["--project", "application"])
+        #expect(error.contains(expected))
+    }
+
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "LocalPackage", random: false),
+        .setupSwiftPackage,
+        .addEmptyDependency,
+    )
+    func `test init command succeeds for application type`() throws {
+        let (output, _) = try exec(
+            "init", "--package-path", ".", "--project", "application", "--project-name", "Example",
+        )
+        #expect(output.contains("✅"))
+        #expect(!output.contains("❌"))
+
+        let root = try #require(DirectoryScope.current?.parent)
+        #expect(root.lastPathComponent.hasPrefix("Example"))
+
+        func content(of file: String) -> String? {
+            try? String(contentsOf: root.appending(path: file), encoding: .utf8)
+        }
+
+        #expect(content(of: ".swift-format") != "")
+        #expect(content(of: "Makefile") != "")
+        #expect(content(of: "project.yml") != "")
     }
 }

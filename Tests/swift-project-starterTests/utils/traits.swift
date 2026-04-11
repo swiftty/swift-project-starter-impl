@@ -1,13 +1,25 @@
 import Foundation
 import Testing
 
-extension Trait where Self == SwiftPMSetupTrait {
-    static func setupSwiftPackage(
+extension Trait where Self == DirectoryScopeTrait {
+    static func directoryScope(
         name: String,
+        random: Bool = true,
         to parent: URL,
     ) -> Self {
-        SwiftPMSetupTrait(name: name, parent: parent)
+        DirectoryScopeTrait(name: name, random: random, parent: parent)
     }
+
+    static func directoryScope(
+        name: String,
+        random: Bool = true,
+    ) -> Self {
+        DirectoryScopeTrait(name: name, random: random)
+    }
+}
+
+extension Trait where Self == SwiftPMSetupTrait {
+    static var setupSwiftPackage: Self { .init() }
 }
 
 extension Trait where Self == AddEmptyDependencyTrait {
@@ -32,18 +44,39 @@ struct DirectoryScope {
     var workingDirectory: URL { parent.appending(path: name) }
 }
 
-struct SwiftPMSetupTrait: TestTrait, TestScoping {
-    var name: String
-    var parent: URL
+struct DirectoryScopeTrait: TestTrait, TestScoping {
+    private enum Repr {
+        case `default`(name: String, parent: URL)
+        case relative(name: String)
+    }
+    private var repr: Repr
+
+    var name: String {
+        switch repr {
+        case .default(let name, _): return name
+        case .relative(let name): return name
+        }
+    }
+    var parent: URL {
+        switch repr {
+        case .default(_, let parent):
+            return parent
+        case .relative:
+            return DirectoryScope.current!.workingDirectory
+        }
+    }
 
     init(name: String, random: Bool = true, parent: URL) {
-        self.name =
-            if random {
-                "\(name)\(UUID().uuidString.prefix(4))"
-            } else {
-                name
-            }
-        self.parent = parent
+        self.repr = .default(
+            name: random ? "\(name)\(UUID().uuidString.prefix(4))" : name,
+            parent: parent,
+        )
+    }
+
+    init(name: String, random: Bool = true) {
+        self.repr = .relative(
+            name: random ? "\(name)\(UUID().uuidString.prefix(4))" : name
+        )
     }
 
     func provideScope(
@@ -69,10 +102,6 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
             "mkdir", "-p", name,
             currentDirectoryURL: parent,
         ).waitUntilExit()
-        try shell(
-            "swift", "package", "init", "--type", "library",
-            currentDirectoryURL: parent.appending(path: name),
-        ).waitUntilExit()
     }
 
     private func tearDown() throws {
@@ -80,6 +109,21 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
             "rm", "-rf", name,
             currentDirectoryURL: parent,
         ).waitUntilExit()
+    }
+}
+
+struct SwiftPMSetupTrait: TestTrait, TestScoping {
+    func provideScope(
+        for test: Test,
+        testCase: Test.Case?,
+        performing function: @concurrent () async throws -> Void,
+    ) async throws {
+        let setting = try #require(DirectoryScope.current)
+        try shell(
+            "swift", "package", "init", "--type", "library",
+            currentDirectoryURL: setting.workingDirectory,
+        ).waitUntilExit()
+        try await function()
     }
 }
 
