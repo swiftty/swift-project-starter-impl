@@ -2,37 +2,19 @@ import Foundation
 import Testing
 @testable import swift_project_starter
 
-let fixturesDirectory = URL(filePath: #filePath)
-    .deletingLastPathComponent()
-    .appending(path: "fixtures")
-
-/// Returns path to the built products directory.
-var productsDirectory: URL {
-    #if os(macOS)
-        for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-            return bundle.bundleURL.deletingLastPathComponent()
-        }
-        fatalError("couldn't find the products directory")
-    #else
-        return Bundle.main.bundleURL
-    #endif
-}
-
-private struct ProjectSetting {
-    @TaskLocal static var currentScope: ProjectSetting?
-
-    var name: String
-    var currentDirectory: URL
-
-    var workingDirectory: URL { currentDirectory.appending(path: name) }
-}
-
 struct `swift-project-starterTests` {
-    private func exec(_ subcommand: String, arguments: [String]) throws -> (
+    private func exec(_ subcommand: String, _ arguments: String...) throws -> (
         stdout: String,
         stderr: String
     ) {
-        let setting = try #require(ProjectSetting.currentScope)
+        try exec(subcommand, arguments)
+    }
+
+    private func exec(_ subcommand: String, _ arguments: [String]) throws -> (
+        stdout: String,
+        stderr: String
+    ) {
+        let setting = try #require(DirectoryScope.current)
 
         let bin = productsDirectory.appending(path: "swift-project-starter")
 
@@ -55,7 +37,8 @@ struct `swift-project-starterTests` {
     }
 
     @Test(
-        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
         .addEmptyDependency,
         arguments: [
             ([], "Error: Missing expected argument '--package-path <package-path>'"),
@@ -66,131 +49,78 @@ struct `swift-project-starterTests` {
         ],
     )
     func `test init command requires option`(_ arguments: [String], _ expected: String) throws {
-        let (_, error) = try exec("init", arguments: arguments)
+        let (_, error) = try exec("init", arguments)
         #expect(error.contains(expected))
     }
 
     @Test(
-        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
         .addEmptyDependency,
     )
-    func `test init command runs success`() throws {
-        let (output, _) = try exec("init", arguments: ["--package-path", ".", "--project", "library"])
+    func `test init command succeeds for library type`() throws {
+        let (output, _) = try exec("init", "--package-path", ".", "--project", "library")
         #expect(output.contains("✅"))
+        #expect(!output.contains("❌"))
     }
-}
 
-extension Trait where Self == SwiftPMSetupTrait {
-    static func setupSwiftPackage(
-        name: String,
-        to currentDirectory: URL,
-    ) -> Self {
-        SwiftPMSetupTrait(name: name, currentDirectory: currentDirectory)
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
+        .addEmptyDependency,
+        .createFile(name: ".swift-format"),
+    )
+    func `test init command succeeds for library type partially overriding`() throws {
+        let (output, _) = try exec("init", "--package-path", ".", "--project", "library")
+        #expect(output.contains("✅"))
+        #expect(output.contains("❌ : '.swift-format' already exists"))
+
+        let path = try #require(
+            DirectoryScope.current?.workingDirectory
+                .appending(path: ".swift-format")
+        )
+        #expect(try String(contentsOf: path, encoding: .utf8) == "")
     }
-}
 
-extension Trait where Self == AddEmptyDependencyTrait {
-    /// add `dependencies: [],` to Package.swift
-    static var addEmptyDependency: Self { .init() }
-}
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "LocalPackage", random: false),
+        .setupSwiftPackage,
+        .addEmptyDependency,
+        arguments: [
+            (
+                ["--package-path", "."],
+                "Error: Missing expected argument '--project-name <name>'",
+            )
+        ],
+    )
+    func `test init command requires option for application type`(_ arguments: [String], _ expected: String) throws {
+        let (_, error) = try exec("init", arguments + ["--project", "application"])
+        #expect(error.contains(expected))
+    }
 
-struct SwiftPMSetupTrait: TestTrait, TestScoping {
-    var name: String
-    var currentDirectory: URL
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "LocalPackage", random: false),
+        .setupSwiftPackage,
+        .addEmptyDependency,
+    )
+    func `test init command succeeds for application type`() throws {
+        let (output, _) = try exec(
+            "init", "--package-path", ".", "--project", "application", "--project-name", "Example",
+        )
+        #expect(output.contains("✅"))
+        #expect(!output.contains("❌"))
 
-    func provideScope(
-        for test: Test,
-        testCase: Test.Case?,
-        performing function: @concurrent () async throws -> Void,
-    ) async throws {
-        try setUp()
-        do {
-            try await ProjectSetting.$currentScope.withValue(.init(name: name, currentDirectory: currentDirectory)) {
-                try await function()
-            }
-        } catch {
-            try tearDown()
-            throw error
+        let root = try #require(DirectoryScope.current?.parent)
+        #expect(root.lastPathComponent.hasPrefix("Example"))
+
+        func content(of file: String) -> String? {
+            try? String(contentsOf: root.appending(path: file), encoding: .utf8)
         }
 
-        try tearDown()
+        #expect(content(of: ".swift-format") != "")
+        #expect(content(of: "Makefile") != "")
+        #expect(content(of: "project.yml") != "")
     }
-
-    private func setUp() throws {
-        try shell(
-            URL(filePath: "/usr/bin/env"),
-            "mkdir", "-p", name,
-            currentDirectoryURL: currentDirectory,
-        ).waitUntilExit()
-        try shell(
-            URL(filePath: "/usr/bin/env"),
-            "swift", "package", "init", "--type", "library",
-            currentDirectoryURL: currentDirectory.appending(path: name),
-        ).waitUntilExit()
-    }
-
-    private func tearDown() throws {
-        try shell(
-            URL(filePath: "/usr/bin/env"),
-            "rm", "-rf", name,
-            currentDirectoryURL: currentDirectory,
-        ).waitUntilExit()
-    }
-}
-
-struct AddEmptyDependencyTrait: TestTrait, TestScoping {
-    func provideScope(
-        for test: Test,
-        testCase: Test.Case?,
-        performing function: @concurrent () async throws -> Void,
-    ) async throws {
-        try modifyPackageSwift()
-        try await function()
-    }
-
-    private func modifyPackageSwift() throws {
-        let setting = try #require(ProjectSetting.currentScope)
-        let packagePath = setting.workingDirectory.appending(path: "Package.swift")
-        var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
-
-        let insertText = "\n    dependencies: [],"
-        let markerText = "\n    targets: ["
-        packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
-        try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
-    }
-}
-
-@discardableResult
-func shell(
-    _ executableURL: URL,
-    _ arguments: String...,
-    currentDirectoryURL: URL? = nil,
-    stdout: Any? = nil,
-    stderr: Any? = nil,
-) throws -> Process {
-    try shell(
-        executableURL, arguments,
-        currentDirectoryURL: currentDirectoryURL,
-        stdout: stdout, stderr: stderr,
-    )
-}
-
-@discardableResult
-func shell(
-    _ executableURL: URL,
-    _ arguments: [String],
-    currentDirectoryURL: URL? = nil,
-    stdout: Any? = nil,
-    stderr: Any? = nil,
-) throws -> Process {
-    let process = Process()
-    process.executableURL = executableURL
-    process.arguments = arguments
-    process.currentDirectoryURL = currentDirectoryURL
-    process.standardOutput = stdout
-    process.standardError = stderr
-
-    try process.run()
-
-    return process
 }
