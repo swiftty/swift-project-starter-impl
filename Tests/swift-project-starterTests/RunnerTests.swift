@@ -77,6 +77,18 @@ struct `swift-project-starterTests` {
     func `test init command runs success`() throws {
         let (output, _) = try exec("init", arguments: ["--package-path", ".", "--project", "library"])
         #expect(output.contains("✅"))
+        #expect(!output.contains("❌"))
+    }
+
+    @Test(
+        .setupSwiftPackage(name: "Example", to: fixturesDirectory),
+        .addEmptyDependency,
+        .createFile(name: ".swift-format"),
+    )
+    func `test init command runs partially success`() throws {
+        let (output, _) = try exec("init", arguments: ["--package-path", ".", "--project", "library"])
+        #expect(output.contains("✅"))
+        #expect(output.contains("❌ : '.swift-format' already exists"))
     }
 }
 
@@ -94,9 +106,25 @@ extension Trait where Self == AddEmptyDependencyTrait {
     static var addEmptyDependency: Self { .init() }
 }
 
+extension Trait where Self == CreateFileTrait {
+    static func createFile(name: String, content: String = "") -> Self {
+        CreateFileTrait(name: name, content: content)
+    }
+}
+
 struct SwiftPMSetupTrait: TestTrait, TestScoping {
     var name: String
     var currentDirectory: URL
+
+    init(name: String, random: Bool = true, currentDirectory: URL) {
+        self.name =
+            if random {
+                "\(name)\(UUID().uuidString.prefix(4))"
+            } else {
+                name
+            }
+        self.currentDirectory = currentDirectory
+    }
 
     func provideScope(
         for test: Test,
@@ -118,12 +146,10 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
 
     private func setUp() throws {
         try shell(
-            URL(filePath: "/usr/bin/env"),
             "mkdir", "-p", name,
             currentDirectoryURL: currentDirectory,
         ).waitUntilExit()
         try shell(
-            URL(filePath: "/usr/bin/env"),
             "swift", "package", "init", "--type", "library",
             currentDirectoryURL: currentDirectory.appending(path: name),
         ).waitUntilExit()
@@ -131,7 +157,6 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
 
     private func tearDown() throws {
         try shell(
-            URL(filePath: "/usr/bin/env"),
             "rm", "-rf", name,
             currentDirectoryURL: currentDirectory,
         ).waitUntilExit()
@@ -158,6 +183,41 @@ struct AddEmptyDependencyTrait: TestTrait, TestScoping {
         packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
         try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
     }
+}
+
+struct CreateFileTrait: TestTrait, TestScoping {
+    var name: String
+    var content: String
+
+    func provideScope(
+        for test: Test,
+        testCase: Test.Case?,
+        performing function: @concurrent () async throws -> Void,
+    ) async throws {
+        let setting = try #require(ProjectSetting.currentScope)
+        let filePath = setting.workingDirectory
+            .appending(path: name)
+            .path(percentEncoded: false)
+        let content = content.data(using: .utf8)
+
+        FileManager.default.createFile(atPath: filePath, contents: content)
+        try await function()
+    }
+}
+
+@discardableResult
+func shell(
+    _ launchPath: String,
+    _ arguments: String...,
+    currentDirectoryURL: URL? = nil,
+    stdout: Any? = nil,
+    stderr: Any? = nil,
+) throws -> Process {
+    try shell(
+        URL(filePath: "/usr/bin/env"), [launchPath] + arguments,
+        currentDirectoryURL: currentDirectoryURL,
+        stdout: stdout, stderr: stderr,
+    )
 }
 
 @discardableResult
