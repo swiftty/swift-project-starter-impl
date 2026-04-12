@@ -8,7 +8,7 @@
       "fileMatch": ["Config\\+default\\.swift"],
       "datasourceTemplate": "github-tags",
       "matchStrings": [
-        "url:\\s\"https://github.com/(?<packageName>[^\")\",\\s(?<currentValue>from:\\s\"[^\"]+\""
+        "url:\\s\"https://github\\.com/(?<depName>[^\"]+)\",\\s(?<currentValue>from:\\s\"[^\"]+\")"
       ]
     }
   ]
