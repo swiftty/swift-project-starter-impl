@@ -1,7 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "github>swiftty/renovate-xcodereleases"
+  "extends": ["config:recommended", "github>swiftty/renovate-xcodereleases"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update default packages in Config+default.swift",
+      "fileMatch": ["Config\\+default\\.swift"],
+      "datasourceTemplate": "github-tags",
+      "matchStrings": [
+        "url:\\s\"https://github.com/(?<packageName>[^\")\",\\s(?<currentValue>from:\\s\"[^\"]+\""
+      ]
+    }
   ]
 }
