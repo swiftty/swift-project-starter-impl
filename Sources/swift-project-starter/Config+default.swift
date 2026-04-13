@@ -1,5 +1,5 @@
 import Foundation
-import System
+import SystemPackage
 
 // default config
 extension Config {
