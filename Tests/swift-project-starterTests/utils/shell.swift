@@ -11,10 +11,8 @@ var productsDirectory: URL {
         for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
             return bundle.bundleURL.deletingLastPathComponent()
         }
-        fatalError("couldn't find the products directory")
-    #else
-        return Bundle.main.bundleURL
     #endif
+    return Bundle.module.bundleURL.deletingLastPathComponent()
 }
 
 @discardableResult

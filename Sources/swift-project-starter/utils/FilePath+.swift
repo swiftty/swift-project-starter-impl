@@ -1,5 +1,5 @@
 import Foundation
-import System
+import SystemPackage
 
 extension FilePath {
     func directory() -> FilePath {
@@ -26,5 +26,15 @@ extension FilePath {
         let down = Array(dest[i...])
 
         return FilePath(root: root, up + down)
+    }
+}
+
+extension URL {
+    init?(filePath: SystemPackage::FilePath) {
+        #if canImport(System)
+            self.init(filePath: SystemFilePath(filePath.string))
+        #else
+            self.init(fileURLWithPath: filePath.string)
+        #endif
     }
 }

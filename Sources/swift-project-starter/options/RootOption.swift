@@ -1,6 +1,6 @@
 import Foundation
 public import ArgumentParser
-public import System
+public import SystemPackage
 
 struct RootOption: ParsableArguments {
     @Option

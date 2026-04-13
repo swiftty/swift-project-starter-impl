@@ -1,6 +1,6 @@
 import Foundation
 import ArgumentParser
-import System
+import SystemPackage
 import SwiftParser
 import SwiftSyntax
 import SwiftSyntaxBuilder

@@ -15,6 +15,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.0"),
+        .package(url: "https://github.com/apple/swift-system", from: "1.6.4"),
         .package(url: "https://github.com/apple/swift-log", from: "1.11.0"),
         // AUTO GENERATED ↓: swift-project-starter: deps
         .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
@@ -29,6 +30,7 @@ let package = Package(
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
                 .product(name: "SwiftRefactor", package: "swift-syntax"),
+                .product(name: "SystemPackage", package: "swift-system"),
                 .product(name: "Logging", package: "swift-log"),
             ],
         ),
@@ -39,6 +41,7 @@ let package = Package(
                 "swift-project-starter"
             ],
             exclude: ["fixtures"],
+            resources: [.copy("dummy")],
         ),
 
         .plugin(

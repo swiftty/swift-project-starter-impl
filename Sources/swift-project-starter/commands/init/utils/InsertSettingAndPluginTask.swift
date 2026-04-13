@@ -1,4 +1,4 @@
-import System
+import SystemPackage
 import SwiftSyntax
 
 private let beginMarker = "AUTO GENERATED ↓: swift-project-starter: settings"
