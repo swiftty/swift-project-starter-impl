@@ -41,6 +41,7 @@ let package = Package(
                 "swift-project-starter"
             ],
             exclude: ["fixtures"],
+            resources: [.copy("dummy")],
         ),
 
         .plugin(

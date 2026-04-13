@@ -8,7 +8,19 @@ on:
 
 jobs:
   build:
-    runs-on: macos-26
+    strategy:
+      matrix:
+        include:
+          # renovate: datasource=github-runners
+          - os: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
+          - os: ubuntu-latest
+            # renovate: datasource=docker
+            container: swift:6.3
+
+    runs-on: ${{ matrix.os }}
+    container:
+      image: ${{ matrix.container }}
 
     steps:
       - uses: actions/checkout@v6
@@ -21,13 +33,8 @@ jobs:
             ${{ runner.os }}-spm-${{ hashFiles('Package.resolved') }}
             ${{ runner.os }}-spm-
       - name: Select Xcode
-        shell: bash
-        run: |
-          sudo xcode-select --switch "/Applications/Xcode_26.4.app"
+        if: ${{ matrix.xcode != null }}
+        run: sudo xcode-select --switch "${{ matrix.xcode }}"
       - name: Run tests
         run: |
-          xcodebuild clean test \
-            -scheme swift-project-starter \
-            -destination "platform=macOS" \
-            -clonedSourcePackagesDirPath .build \
-            -skipPackagePluginValidation
+          swift test
