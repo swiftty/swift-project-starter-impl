@@ -6,10 +6,11 @@ import PackageDescription
 let package = Package(
     name: "swift-project-starter",
     platforms: [
-        .macOS(.v15)
+        .macOS(.v26)
     ],
     products: [
-        .plugin(name: "swift-project-starter-plugin", targets: ["swift-project-starter-plugin"])
+        .executable(name: "swift-project-starter", targets: ["swift-project-starter"]),
+        .plugin(name: "swift-project-starter-plugin", targets: ["swift-project-starter-plugin"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
