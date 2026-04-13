@@ -133,19 +133,22 @@ struct AddEmptyDependencyTrait: TestTrait, TestScoping {
         testCase: Test.Case?,
         performing function: @concurrent () async throws -> Void,
     ) async throws {
-        try modifyPackageSwift()
+        try await modifyPackageSwift()
         try await function()
     }
 
-    private func modifyPackageSwift() throws {
-        let setting = try #require(DirectoryScope.current)
-        let packagePath = setting.workingDirectory.appending(path: "Package.swift")
-        var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
+    private func modifyPackageSwift() async throws {
+        for _ in 0..<10 {
+            try await Task.sleep(for: .nanoseconds(100))
+            let setting = try #require(DirectoryScope.current)
+            let packagePath = setting.workingDirectory.appending(path: "Package.swift")
+            var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
 
-        let insertText = "\n    dependencies: [],"
-        let markerText = "\n    targets: ["
-        packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
-        try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
+            let insertText = "\n    dependencies: [],"
+            let markerText = "\n    targets: ["
+            packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
+            try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
+        }
     }
 }
 
