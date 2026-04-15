@@ -146,7 +146,7 @@ private class DepsRewriter: SyntaxRewriter {
                 dependencies = []
             }
 
-            var elements: [ArrayElementSyntax] = []
+            var items: [ArrayElementSyntax] = []
             for dep in dependencies {
                 Logger.currentScope?.info("installing dependency: \(dep.value.url)")
                 defer {
@@ -166,15 +166,21 @@ private class DepsRewriter: SyntaxRewriter {
                         .package(url: "\(raw: dep.value.url)", from: "\(raw: dep.value.from)")
                         """
                     }
-                elements.append(
-                    ArrayElementSyntax(expression: expr)
-                        .with(\.leadingTrivia, .newline)
-                )
+                items.append(ArrayElementSyntax(expression: expr).with(\.leadingTrivia, .newline))
             }
 
-            if let elem = elements.first {
+            if let elem = items.first {
                 let trivia = elem.leadingTrivia.appending([.lineComment("// \(beginMarker)"), .newlines(1)])
-                elements[elements.startIndex] = elem.with(\.leadingTrivia, trivia)
+                items[items.startIndex] = elem.with(\.leadingTrivia, trivia)
+            }
+
+            let elements = ArrayElementListSyntax {
+                for element in node.elements {
+                    element
+                }
+                for element in items {
+                    element
+                }
             }
 
             let endTrivia: Trivia = [
@@ -186,7 +192,7 @@ private class DepsRewriter: SyntaxRewriter {
             ]
             return super.visit(
                 node
-                    .with(\.elements, node.elements + elements)
+                    .with(\.elements, elements)
                     .with(\.rightSquare.leadingTrivia, endTrivia)
             )
         }
