@@ -50,6 +50,7 @@ struct DirectoryScopeTrait: TestTrait, TestScoping {
         case relative(name: String)
     }
     private var repr: Repr
+    private var random: Bool
 
     var name: String {
         switch repr {
@@ -67,16 +68,13 @@ struct DirectoryScopeTrait: TestTrait, TestScoping {
     }
 
     init(name: String, random: Bool = true, parent: URL) {
-        self.repr = .default(
-            name: random ? "\(name)\(UUID().uuidString.prefix(4))" : name,
-            parent: parent,
-        )
+        self.repr = .default(name: name, parent: parent)
+        self.random = random
     }
 
     init(name: String, random: Bool = true) {
-        self.repr = .relative(
-            name: random ? "\(name)\(UUID().uuidString.prefix(4))" : name
-        )
+        self.repr = .relative(name: name)
+        self.random = random
     }
 
     func provideScope(
@@ -84,27 +82,29 @@ struct DirectoryScopeTrait: TestTrait, TestScoping {
         testCase: Test.Case?,
         performing function: @concurrent () async throws -> Void,
     ) async throws {
-        try setUp()
+        let name = random ? "\(name)\(UUID().uuidString.prefix(4))" : name
+
+        try setUp(name: name)
         do {
             try await DirectoryScope.$current.withValue(.init(name: name, parent: parent)) {
                 try await function()
             }
         } catch {
-            try tearDown()
+            try tearDown(name: name)
             throw error
         }
 
-        try tearDown()
+        try tearDown(name: name)
     }
 
-    private func setUp() throws {
+    private func setUp(name: String) throws {
         try shell(
             "mkdir", "-p", name,
             currentDirectoryURL: parent,
         ).waitUntilExit()
     }
 
-    private func tearDown() throws {
+    private func tearDown(name: String) throws {
         try shell(
             "rm", "-rf", name,
             currentDirectoryURL: parent,
@@ -123,7 +123,20 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
             "swift", "package", "init", "--type", "library",
             currentDirectoryURL: setting.workingDirectory,
         ).waitUntilExit()
+
         try await function()
+
+        let stderr = Pipe()
+        try shell(
+            "swift", "package", "dump-package", "--package-path", setting.workingDirectory.path(percentEncoded: false),
+            currentDirectoryURL: setting.workingDirectory,
+            stderr: stderr,
+        ).waitUntilExit()
+
+        let data = stderr.fileHandleForReading.readDataToEndOfFile()
+        if let output = String(data: data, encoding: .utf8), !output.isEmpty {
+            Issue.record("Unexpected output from `swift package dump-package`: \(output)")
+        }
     }
 }
 
@@ -147,12 +160,18 @@ struct AddEmptyDependencyTrait: TestTrait, TestScoping {
             try await Task.sleep(for: .milliseconds(100))
         }
         for _ in 0..<100 {
-            var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
+            do {
+                var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
 
-            let insertText = "\n    dependencies: [],"
-            let markerText = "\n    targets: ["
-            packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
-            try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
+                let insertText = "\n    dependencies: [],"
+                let markerText = "\n    targets: ["
+                packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
+                try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
+
+                break
+            } catch {
+                continue
+            }
         }
     }
 }
