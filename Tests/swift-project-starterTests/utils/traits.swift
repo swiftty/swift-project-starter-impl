@@ -128,7 +128,7 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
 
         let stderr = Pipe()
         try shell(
-            "swift", "package", "dump-package", "--package-path", setting.workingDirectory.path(percentEncoded: false),
+            "swift", "package", "dump-package",
             currentDirectoryURL: setting.workingDirectory,
             stderr: stderr,
         ).waitUntilExit()
