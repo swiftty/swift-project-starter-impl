@@ -29,7 +29,7 @@ struct Config: Codable {
             var projectRoot: String
             var makefile: Makefile?
             var xcodegen: XcodeGen?
-            var resources: [File]
+            var resources: [File]?
 
             enum CodingKeys: String, CodingKey {
                 case name
@@ -42,7 +42,7 @@ struct Config: Codable {
 
         private struct Library: Codable {
             var type = "library"
-            var resources: [File]
+            var resources: [File]?
         }
 
         init(from decoder: any Decoder) throws {
@@ -55,11 +55,11 @@ struct Config: Codable {
                             projectRoot: $0.projectRoot,
                             makefile: $0.makefile,
                             xcoddgen: $0.xcodegen,
-                            resources: $0.resources,
+                            resources: $0.resources ?? [],
                         )
                     },
                     Library.to {
-                        Self.library(resources: $0.resources)
+                        Self.library(resources: $0.resources ?? [])
                     },
                 ],
             )
@@ -73,12 +73,12 @@ struct Config: Codable {
                     projectRoot: projectRoot,
                     makefile: makefile,
                     xcodegen: xcodegen,
-                    resources: resources,
+                    resources: resources.orNil(),
                 )
                 try container.encode(to: encoder)
 
             case .library(let resources):
-                let container = Library(resources: resources)
+                let container = Library(resources: resources.orNil())
                 try container.encode(to: encoder)
             }
         }
@@ -175,5 +175,11 @@ private extension Decodable {
                 return nil
             }
         }
+    }
+}
+
+private extension Array {
+    func orNil() -> Self? {
+        isEmpty ? nil : self
     }
 }

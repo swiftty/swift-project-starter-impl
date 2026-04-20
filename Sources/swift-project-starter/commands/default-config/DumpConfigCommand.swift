@@ -2,9 +2,9 @@ import Foundation
 import SystemPackage
 import ArgumentParser
 
-struct DefaultConfigCommand: AsyncParsableCommand {
+struct DumpConfigCommand: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
-        commandName: "default-config"
+        commandName: "dump-config"
     )
 
     @OptionGroup
