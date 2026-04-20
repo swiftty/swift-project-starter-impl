@@ -46,6 +46,47 @@ struct `swift-project-starterTests` {
     @Test(
         .directoryScope(name: "Example", to: fixturesDirectory),
         .setupSwiftPackage,
+        arguments: [
+            ("config.json", "."),
+            ("custom.json", "custom.json"),
+        ],
+    )
+    func `test dump-config command with config`(configName: String, commandValue: String) throws {
+        let setting = try #require(DirectoryScope.current)
+        // swift-format-ignore
+        let json = """
+        {
+          "dependencies" : [
+
+          ],
+          "project" : {
+            "type" : "library"
+          },
+          "swiftSettings" : [
+
+          ]
+        }
+
+        """
+        try json
+            .write(to: setting.workingDirectory.appending(path: configName), atomically: true, encoding: .utf8)
+
+        let (output, error) = try exec(
+            "dump-config",
+            "--package-path",
+            ".",
+            "--project",
+            "library",
+            "--config-path",
+            commandValue,
+        )
+        #expect(output == json)
+        #expect(error == "")
+    }
+
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
         .addEmptyDependency,
         arguments: [
             ([], "Error: Missing expected argument '--package-path <package-path>'"),

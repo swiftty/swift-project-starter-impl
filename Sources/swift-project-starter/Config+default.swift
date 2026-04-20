@@ -2,6 +2,35 @@ import Foundation
 import SystemPackage
 
 // default config
+/**
+ *
+ * ```json
+ * {
+ *   "project": {
+ *     "type": "application" | "library",
+ *     // available if type == "application"
+ *     "name": "xxx",
+ *     "projectRoot": "..",
+ *     "Makefile": {
+ *       "content": "xxx"
+ *     },
+ *     "XcodeGen": {
+ *       "content": "xxx"
+ *     }
+ *   },
+ *   "dependencies": [
+ *     { "url": "...", "from": "x.y.z" }
+ *   ],
+ *   "swiftSettings": [
+ *     { "defaultIsolation": "MainActor" },
+ *     { "enableUpcomingFeature": "InternalImportsByDefault" },
+ *     { "enableExperimentalFeature": "xxx" }
+ *   ]
+ * }
+ * ```
+ *
+ */
+
 extension Config {
     static func forApplicationDefault(name: String, packagePath: FilePath) -> Self {
         Self.init(
@@ -195,32 +224,3 @@ extension Config.Project.File {
         Self.init(filePath: FilePath(path).appending(".gitignore").string, content: "")
     }
 }
-
-/**
- *
- * ```json
- * {
- *   "project": {
- *     "type": "application" | "library",
- *     // available if type == "application"
- *     "name": "xxx",
- *     "projectRoot": "..",
- *     "Makefile": {
- *       "content": "xxx"
- *     },
- *     "XcodeGen": {
- *       "content": "xxx"
- *     }
- *   },
- *   "dependencies": [
- *     { "url": "...", "from": "x.y.z" }
- *   ],
- *   "swiftSettings": [
- *     { "defaultIsolation": "MainActor" },
- *     { "enableUpcomingFeature": "InternalImportsByDefault" },
- *     { "enableExperimentalFeature": "xxx" }
- *   ]
- * }
- * ```
- *
- */
