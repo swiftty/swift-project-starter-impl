@@ -8,7 +8,7 @@ struct `swift-project-starterTests` {
         .directoryScope(name: "Example", to: fixturesDirectory),
         .setupSwiftPackage,
     )
-    func `test default-config command`() throws {
+    func `test dump-config command`() throws {
         // swift-format-ignore
         let expected = """
         {
@@ -38,7 +38,7 @@ struct `swift-project-starterTests` {
         }
 
         """
-        let (output, error) = try exec("default-config", "--package-path", ".", "--project", "library")
+        let (output, error) = try exec("dump-config", "--package-path", ".", "--project", "library")
         #expect(output == expected)
         #expect(error == "")
     }

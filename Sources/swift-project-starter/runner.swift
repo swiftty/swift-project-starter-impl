@@ -13,7 +13,7 @@ struct Runner: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         subcommands: [
             InitCommand.self,
-            DefaultConfigCommand.self,
+            DumpConfigCommand.self,
         ]
     )
 
