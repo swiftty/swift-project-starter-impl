@@ -24,6 +24,11 @@ import SystemPackage
  *   "swiftSettings": [
  *     { "defaultIsolation": "MainActor" },
  *     { "enableUpcomingFeature": "InternalImportsByDefault" },
+ *     { "enableUpcomingFeature": "NonisolatedNonsendingByDefault" },
+ *     { "enableUpcomingFeature": "MemberImportVisibility" },
+ *     { "enableUpcomingFeature": "InferIsolatedConformances" },
+ *     { "enableUpcomingFeature": "ImmutableWeakCaptures" },
+ *     { "enableUpcomingFeature": "ExistentialAny" },
  *     { "enableExperimentalFeature": "xxx" }
  *   ]
  * }
@@ -61,6 +66,10 @@ extension Config {
                 .defaultIsolation(.MainActor),
                 .enableUpcomingFeature("InternalImportsByDefault"),
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+                .enableUpcomingFeature("MemberImportVisibility"),
+                .enableUpcomingFeature("InferIsolatedConformances"),
+                .enableUpcomingFeature("ImmutableWeakCaptures"),
+                .enableUpcomingFeature("ExistentialAny"),
             ],
         )
     }
@@ -77,6 +86,10 @@ extension Config {
         swiftSettings: [
             .enableUpcomingFeature("InternalImportsByDefault"),
             .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+            .enableUpcomingFeature("MemberImportVisibility"),
+            .enableUpcomingFeature("InferIsolatedConformances"),
+            .enableUpcomingFeature("ImmutableWeakCaptures"),
+            .enableUpcomingFeature("ExistentialAny"),
         ],
     )
 }

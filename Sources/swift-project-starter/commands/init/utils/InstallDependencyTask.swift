@@ -1,6 +1,7 @@
 import SystemPackage
 import SwiftSyntax
 import Logging
+import SwiftSyntaxBuilder
 
 private let beginMarker = "AUTO GENERATED ↓: swift-project-starter: deps"
 private let endMarker = "AUTO GENERATED ↑: swift-project-starter: deps"
