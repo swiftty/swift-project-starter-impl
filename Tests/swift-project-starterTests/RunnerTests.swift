@@ -33,6 +33,18 @@ struct `swift-project-starterTests` {
             },
             {
               "enableUpcomingFeature" : "NonisolatedNonsendingByDefault"
+            },
+            {
+              "enableUpcomingFeature" : "MemberImportVisibility"
+            },
+            {
+              "enableUpcomingFeature" : "InferIsolatedConformances"
+            },
+            {
+              "enableUpcomingFeature" : "ImmutableWeakCaptures"
+            },
+            {
+              "enableUpcomingFeature" : "ExistentialAny"
             }
           ]
         }
