@@ -18,7 +18,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-system", from: "1.6.4"),
         .package(url: "https://github.com/apple/swift-log", from: "1.12.0"),
         // AUTO GENERATED ↓: swift-project-starter: deps
-        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
+        .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0")
         // AUTO GENERATED ↑: swift-project-starter: deps
     ],
     targets: [
@@ -74,6 +74,10 @@ for target in package.targets {
             swiftSettings += [
                 .enableUpcomingFeature("InternalImportsByDefault"),
                 .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+                .enableUpcomingFeature("MemberImportVisibility"),
+                .enableUpcomingFeature("InferIsolatedConformances"),
+                .enableUpcomingFeature("ImmutableWeakCaptures"),
+                .enableUpcomingFeature("ExistentialAny")
             ]
         }
         do {

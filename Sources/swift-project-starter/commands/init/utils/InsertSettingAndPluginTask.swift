@@ -1,5 +1,6 @@
 import SystemPackage
 import SwiftSyntax
+import SwiftSyntaxBuilder
 
 private let beginMarker = "AUTO GENERATED ↓: swift-project-starter: settings"
 private let endMarker = "AUTO GENERATED ↑: swift-project-starter: settings"

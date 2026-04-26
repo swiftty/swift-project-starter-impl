@@ -32,7 +32,10 @@ extension FilePath {
 extension URL {
     init?(filePath: SystemPackage::FilePath) {
         #if canImport(System)
-            self.init(filePath: SystemFilePath(filePath.string))
+            guard let url = url(from: filePath.string) else {
+                return nil
+            }
+            self = url
         #else
             self.init(fileURLWithPath: filePath.string)
         #endif

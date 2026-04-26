@@ -4,6 +4,7 @@ import SwiftParser
 import SwiftSyntax
 import SwiftSyntaxBuilder
 import Logging
+import SwiftBasicFormat
 
 extension InitCommand {
     protocol SwiftSyntaxTask {}
