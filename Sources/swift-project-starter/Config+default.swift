@@ -47,7 +47,7 @@ extension Config {
                     projectRoot: "..",
                     packageDirectory: packagePath.directory().lastComponent!,
                 ),
-                xcoddgen: .default(
+                xcodegen: .default(
                     projectName: name,
                     packageDirectory: packagePath.directory().lastComponent!,
                 ),

@@ -10,7 +10,7 @@ struct Config: Codable {
             name: String,
             projectRoot: String,
             makefile: Makefile?,
-            xcoddgen: XcodeGen?,
+            xcodegen: XcodeGen?,
             resources: [File],
         )
         case library(
@@ -54,7 +54,7 @@ struct Config: Codable {
                             name: $0.name,
                             projectRoot: $0.projectRoot,
                             makefile: $0.makefile,
-                            xcoddgen: $0.xcodegen,
+                            xcodegen: $0.xcodegen,
                             resources: $0.resources ?? [],
                         )
                     },
@@ -136,8 +136,8 @@ struct Config: Codable {
                 try container.encode(to: encoder)
 
             case .enableExperimentalFeature(let value):
-                let contaienr = EnableExperimentalFeature(enableExperimentalFeature: value)
-                try contaienr.encode(to: encoder)
+                let container = EnableExperimentalFeature(enableExperimentalFeature: value)
+                try container.encode(to: encoder)
             }
         }
     }
