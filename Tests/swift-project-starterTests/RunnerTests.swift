@@ -183,6 +183,23 @@ struct `swift-project-starterTests` {
         #expect(content(of: "Makefile") != "")
         #expect(content(of: "project.yml") != "")
     }
+
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
+        .addDependency(raw: ".package(url: \"example.com/example\", from: \"1.0.0\")"),
+    )
+    func `test init command installs dependencies when non-empty`() throws {
+        let setting = try #require(DirectoryScope.current)
+        let (output, _) = try exec("init", "--package-path", ".", "--project", "library")
+        #expect(output.contains("✅"))
+
+        let packagePath = setting.workingDirectory.appending(path: "Package.swift")
+        let content = try String(contentsOf: packagePath, encoding: .utf8)
+        #expect(content.contains("example.com/example"))
+        #expect(content.contains("swift-format-plugin"))
+        #expect(content.contains("AUTO GENERATED"))
+    }
 }
 
 extension `swift-project-starterTests` {
