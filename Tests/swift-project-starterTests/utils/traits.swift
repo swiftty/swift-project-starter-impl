@@ -22,15 +22,20 @@ extension Trait where Self == SwiftPMSetupTrait {
     static var setupSwiftPackage: Self { .init() }
 }
 
-extension Trait where Self == AddEmptyDependencyTrait {
+extension Trait where Self == AddDependencyTrait {
     /// add `dependencies: [],` to Package.swift
-    static var addEmptyDependency: Self { .init() }
+    static var addEmptyDependency: Self { .init(raw: "") }
 }
 
 extension Trait where Self == CreateFileTrait {
     static func createFile(name: String, content: String = "") -> Self {
         CreateFileTrait(name: name, content: content)
     }
+}
+
+extension Trait where Self == AddDependencyTrait {
+    /// add a dependency entry to Package.swift dependencies array
+    static func addDependency(raw: String) -> Self { .init(raw: raw) }
 }
 
 // MARK: -
@@ -140,7 +145,29 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
     }
 }
 
-struct AddEmptyDependencyTrait: TestTrait, TestScoping {
+struct CreateFileTrait: TestTrait, TestScoping {
+    var name: String
+    var content: String
+
+    func provideScope(
+        for test: Test,
+        testCase: Test.Case?,
+        performing function: @concurrent () async throws -> Void,
+    ) async throws {
+        let setting = try #require(DirectoryScope.current)
+        let filePath = setting.workingDirectory
+            .appending(path: name)
+            .path(percentEncoded: false)
+        let content = content.data(using: .utf8)
+
+        FileManager.default.createFile(atPath: filePath, contents: content)
+        try await function()
+    }
+}
+
+struct AddDependencyTrait: TestTrait, TestScoping {
+    var raw: String
+
     func provideScope(
         for test: Test,
         testCase: Test.Case?,
@@ -163,7 +190,13 @@ struct AddEmptyDependencyTrait: TestTrait, TestScoping {
             do {
                 var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
 
-                let insertText = "\n    dependencies: [],"
+                let insertText: String
+                if raw.isEmpty {
+                    insertText = "\n    dependencies: [],"
+                } else {
+                    let body = raw.components(separatedBy: "\n").joined(separator: "\n        ")
+                    insertText = "\n    dependencies: [\n        \(body)\n    ],"
+                }
                 let markerText = "\n    targets: ["
                 packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
                 try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
@@ -173,25 +206,5 @@ struct AddEmptyDependencyTrait: TestTrait, TestScoping {
                 continue
             }
         }
-    }
-}
-
-struct CreateFileTrait: TestTrait, TestScoping {
-    var name: String
-    var content: String
-
-    func provideScope(
-        for test: Test,
-        testCase: Test.Case?,
-        performing function: @concurrent () async throws -> Void,
-    ) async throws {
-        let setting = try #require(DirectoryScope.current)
-        let filePath = setting.workingDirectory
-            .appending(path: name)
-            .path(percentEncoded: false)
-        let content = content.data(using: .utf8)
-
-        FileManager.default.createFile(atPath: filePath, contents: content)
-        try await function()
     }
 }
