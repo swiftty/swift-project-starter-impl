@@ -196,9 +196,22 @@ struct `swift-project-starterTests` {
 
         let packagePath = setting.workingDirectory.appending(path: "Package.swift")
         let content = try String(contentsOf: packagePath, encoding: .utf8)
-        #expect(content.contains("example.com/example"))
-        #expect(content.contains("swift-format-plugin"))
-        #expect(content.contains("AUTO GENERATED"))
+        #expect(content.matches(of: /AUTO GENERATED ↓: swift-project-starter: deps/).count == 1)
+    }
+
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .setupSwiftPackage,
+        .addDependency(raw: ".package(url: \"example.com/example\", from: \"1.0.0\", traits: [.trait(name: \"FOO\")])"),
+    )
+    func `test init command installs dependencies with traits`() throws {
+        let setting = try #require(DirectoryScope.current)
+        let (output, _) = try exec("init", "--package-path", ".", "--project", "library")
+        #expect(output.contains("✅"))
+
+        let packagePath = setting.workingDirectory.appending(path: "Package.swift")
+        let content = try String(contentsOf: packagePath, encoding: .utf8)
+        #expect(content.matches(of: /AUTO GENERATED ↓: swift-project-starter: deps/).count == 1)
     }
 }
 

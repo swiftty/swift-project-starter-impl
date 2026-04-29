@@ -143,10 +143,6 @@ private class DepsRewriter: SyntaxRewriter {
                 return super.visit(node)
             }
 
-            defer {
-                dependencies = []
-            }
-
             var items: [ArrayElementSyntax] = []
             for dep in dependencies {
                 Logger.currentScope?.info("installing dependency: \(dep.value.url)")
@@ -191,6 +187,9 @@ private class DepsRewriter: SyntaxRewriter {
                 .newlines(1),
                 .spaces(4),
             ]
+
+            dependencies = []
+
             return super.visit(
                 node
                     .with(\.elements, elements)
