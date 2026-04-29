@@ -22,9 +22,9 @@ extension Trait where Self == SwiftPMSetupTrait {
     static var setupSwiftPackage: Self { .init() }
 }
 
-extension Trait where Self == AddEmptyDependencyTrait {
+extension Trait where Self == AddDependencyTrait {
     /// add `dependencies: [],` to Package.swift
-    static var addEmptyDependency: Self { .init() }
+    static var addEmptyDependency: Self { .init(raw: "") }
 }
 
 extension Trait where Self == CreateFileTrait {
@@ -145,42 +145,6 @@ struct SwiftPMSetupTrait: TestTrait, TestScoping {
     }
 }
 
-struct AddEmptyDependencyTrait: TestTrait, TestScoping {
-    func provideScope(
-        for test: Test,
-        testCase: Test.Case?,
-        performing function: @concurrent () async throws -> Void,
-    ) async throws {
-        try await modifyPackageSwift()
-        try await function()
-    }
-
-    private func modifyPackageSwift() async throws {
-        let setting = try #require(DirectoryScope.current)
-        let packagePath = setting.workingDirectory.appending(path: "Package.swift")
-        for _ in 0..<100 {
-            if FileManager.default.fileExists(atPath: packagePath.path(percentEncoded: false)) {
-                break
-            }
-            try await Task.sleep(for: .milliseconds(100))
-        }
-        for _ in 0..<100 {
-            do {
-                var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
-
-                let insertText = "\n    dependencies: [],"
-                let markerText = "\n    targets: ["
-                packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
-                try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
-
-                break
-            } catch {
-                continue
-            }
-        }
-    }
-}
-
 struct CreateFileTrait: TestTrait, TestScoping {
     var name: String
     var content: String
@@ -226,8 +190,13 @@ struct AddDependencyTrait: TestTrait, TestScoping {
             do {
                 var packageManifest = try String(contentsOf: packagePath, encoding: .utf8)
 
-                let body = raw.isEmpty ? "" : raw.components(separatedBy: "\n").joined(separator: "\n        ")
-                let insertText = "\n    dependencies: [\n        \(body)\n    ],"
+                let insertText: String
+                if raw.isEmpty {
+                    insertText = "\n    dependencies: [],"
+                } else {
+                    let body = raw.components(separatedBy: "\n").joined(separator: "\n        ")
+                    insertText = "\n    dependencies: [\n        \(body)\n    ],"
+                }
                 let markerText = "\n    targets: ["
                 packageManifest = packageManifest.replacingOccurrences(of: markerText, with: insertText + markerText)
                 try packageManifest.write(to: packagePath, atomically: true, encoding: .utf8)
