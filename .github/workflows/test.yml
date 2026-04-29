@@ -13,7 +13,7 @@ jobs:
         include:
           # renovate: datasource=github-runners
           - os: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.4.1.app"
           - os: ubuntu-latest
             # renovate: datasource=docker
             container: swift:6.3
