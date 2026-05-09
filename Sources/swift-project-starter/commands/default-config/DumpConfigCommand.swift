@@ -8,7 +8,7 @@ struct DumpConfigCommand: AsyncParsableCommand {
     )
 
     @OptionGroup
-    var options: ProjectOption
+    var options: Options
 
     func run() async throws {
         let config = try options.asConfig()
