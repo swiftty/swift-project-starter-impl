@@ -12,7 +12,7 @@ struct InitCommand: AsyncParsableCommand {
     )
 
     @OptionGroup
-    var options: ProjectOption
+    var options: Options
 
     func run() async throws {
         try await Logger.$currentScope.withValue(Logger(label: "init")) {
