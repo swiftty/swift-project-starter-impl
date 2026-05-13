@@ -57,34 +57,33 @@ extension InitCommand.InsertSettingAndPluginTask {
         return try CodeBlockItemListSyntax {
             try ForStmtSyntax("for target in package.targets") {
                 try IfExprSyntax("if [.executable, .test, .regular].contains(target.type)") {
-                    try DoStmtSyntax("do") {
-                        let settings = ArrayElementListSyntax {
-                            for setting in swiftSettings {
-                                ArrayElementSyntax(expression: setting.toSyntax())
-                                    .with(\.leadingTrivia, .newline)
-                            }
-                        }.with(\.trailingTrivia, .newline)
-
-                        "var swiftSettings = target.swiftSettings ?? []"
-                        "defer { target.swiftSettings = swiftSettings }"
-                        "swiftSettings += [\(settings)]"
+                    let settings = ArrayElementListSyntax {
+                        for (index, setting) in swiftSettings.enumerated() {
+                            ArrayElementSyntax(expression: setting.toSyntax())
+                                .with(\.leadingTrivia, index != 0 ? .newline : [])
+                        }
                     }
 
-                    if hasSwiftFormatPlugin {
-                        try DoStmtSyntax("do") {
-                            let plugins = ArrayElementListSyntax {
-                                let plugin = ExprSyntax(
-                                    """
-                                    .plugin(name: "Lint", package: "swift-format-plugin")
-                                    """)
-                                ArrayElementSyntax(expression: plugin)
-                                    .with(\.leadingTrivia, .newline)
-                            }.with(\.trailingTrivia, .newline)
+                    """
+                    target.swiftSettings = (target.swiftSettings ?? []) + [
+                        \(settings)
+                    ]
+                    """
 
-                            "var plugins = target.plugins ?? []"
-                            "defer { target.plugins = plugins }"
-                            "plugins += [\(plugins)]"
+                    if hasSwiftFormatPlugin {
+                        let plugins = ArrayElementListSyntax {
+                            let plugin = ExprSyntax(
+                                """
+                                .plugin(name: "Lint", package: "swift-format-plugin")
+                                """)
+                            ArrayElementSyntax(expression: plugin)
                         }
+
+                        """
+                        target.plugins = (target.plugins ?? []) + [
+                            \(plugins)
+                        ]
+                        """
                     }
                 }
             }
