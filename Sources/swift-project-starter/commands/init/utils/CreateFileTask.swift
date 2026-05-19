@@ -14,26 +14,41 @@ extension InitCommand.CreateFileTask {
     func run() async throws {
         Logger.currentScope?.info("creating file: \(path.lastComponent?.string ?? "<unknown>")")
 
-        try createDirectory(at: path.directory())
+        let created = try createDirectory(at: path.directory())
+        let hasOtherFiles = {
+            if !created, try !enumerateContents(of: path.directory()).isEmpty {
+                true
+            } else {
+                false
+            }
+        }
+
+        // Skip if `.gitkeep` is not needed
+        if path.lastComponent?.string == ".gitkeep", try hasOtherFiles() {
+            return
+        }
 
         try writeContent(content, to: path)
     }
 
-    private func createDirectory(at path: FilePath) throws {
+    private func createDirectory(at directory: FilePath) throws -> Bool {
         let manager = FileManager.default
 
         var isDirectory: ObjCBool = false
-        let exists = manager.fileExists(atPath: path.string, isDirectory: &isDirectory)
+        let exists = manager.fileExists(atPath: directory.string, isDirectory: &isDirectory)
         if exists && isDirectory.boolValue {
-            return
+            return false
         }
         if !exists {
-            try manager.createDirectory(atPath: path.string, withIntermediateDirectories: true)
-            return
+            try manager.createDirectory(atPath: directory.string, withIntermediateDirectories: true)
+            return true
         }
-        if !isDirectory.boolValue {
-            throw ValidationError("'\(path.string)' is not a directory")
-        }
+        throw ValidationError("'\(directory.string)' is not a directory")
+    }
+
+    private func enumerateContents(of directory: FilePath) throws -> [String] {
+        let manager = FileManager.default
+        return try manager.contentsOfDirectory(atPath: directory.string)
     }
 
     private func writeContent(_ content: String, to path: FilePath) throws {
