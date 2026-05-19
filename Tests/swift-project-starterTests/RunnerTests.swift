@@ -166,22 +166,68 @@ struct `swift-project-starterTests` {
         .addEmptyDependency,
     )
     func `test init command succeeds for application type`() throws {
+        let root = try #require(DirectoryScope.current?.parent)
+        #expect(root.lastPathComponent.hasPrefix("Example"))
+
         let (output, _) = try exec(
             "init", "--package-path", ".", "--project", "application", "--project-name", "Example",
+            "--application-path", "App",
         )
         #expect(output.contains("✅"))
         #expect(!output.contains("❌"))
 
-        let root = try #require(DirectoryScope.current?.parent)
-        #expect(root.lastPathComponent.hasPrefix("Example"))
-
         func content(of file: String) -> String? {
-            try? String(contentsOf: root.appending(path: file), encoding: .utf8)
+            let path = file.components(separatedBy: "/").reduce(into: root) { path, comp in
+                path.append(path: comp)
+            }
+            return try? String(contentsOf: path, encoding: .utf8)
         }
 
         #expect(content(of: ".swift-format") != "")
         #expect(content(of: "Makefile") != "")
         #expect(content(of: "project.yml") != "")
+        #expect(content(of: "App/Sources/.gitkeep") == "")
+        #expect(content(of: "App/Resources/.gitkeep") == "")
+    }
+
+    @Test(
+        .directoryScope(name: "Example", to: fixturesDirectory),
+        .directoryScope(name: "LocalPackage", random: false),
+        .setupSwiftPackage,
+        .addEmptyDependency,
+    )
+    func `test init command succeeds for application type with skipping .gitkeep`() throws {
+        let root = try #require(DirectoryScope.current?.parent)
+        #expect(root.lastPathComponent.hasPrefix("Example"))
+
+        // prepare source files
+        do {
+            let path = root.appending(path: "App").appending(path: "Sources").appending(path: "foo.swift")
+
+            try FileManager.default
+                .createDirectory(at: path.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try "".write(to: path, atomically: true, encoding: .utf8)
+        }
+
+        let (output, _) = try exec(
+            "init", "--package-path", ".", "--project", "application", "--project-name", "Example",
+            "--application-path", "App",
+        )
+        #expect(output.contains("✅"))
+        #expect(!output.contains("❌"))
+
+        func content(of file: String) -> String? {
+            let path = file.components(separatedBy: "/").reduce(into: root) { path, comp in
+                path.append(path: comp)
+            }
+            return try? String(contentsOf: path, encoding: .utf8)
+        }
+
+        #expect(content(of: ".swift-format") != "")
+        #expect(content(of: "Makefile") != "")
+        #expect(content(of: "project.yml") != "")
+        #expect(content(of: "App/Sources/.gitkeep") == nil)
+        #expect(content(of: "App/Resources/.gitkeep") == "")
     }
 
     @Test(

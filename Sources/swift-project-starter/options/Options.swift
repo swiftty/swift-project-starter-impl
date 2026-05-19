@@ -19,6 +19,9 @@ struct Options: ParsableArguments {
     @Option
     var configPath: FilePath?
 
+    @Option
+    var applicationPath: FilePath?
+
     mutating func validate() throws {
         let manager = FileManager.default
 
@@ -57,7 +60,19 @@ struct Options: ParsableArguments {
             guard let projectName else {
                 throw ValidationError("Error: Missing expected argument '--project-name <name>'")
             }
-            return Config.forApplicationDefault(name: projectName, packagePath: packagePath.standardized())
+            guard let applicationPath else {
+                throw ValidationError("Error: Missing expected argument '--application-path <name>'")
+            }
+            guard applicationPath.isRelative else {
+                throw ValidationError(
+                    "Error: Project root path '\(applicationPath)' must be relative from '--application-path <name>'")
+            }
+
+            return Config.forApplicationDefault(
+                name: projectName,
+                packagePath: packagePath,
+                applicationPath: applicationPath,
+            )
 
         case .library:
             return Config.forLibraryDefault

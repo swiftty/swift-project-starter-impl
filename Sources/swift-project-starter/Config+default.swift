@@ -37,7 +37,7 @@ import SystemPackage
  */
 
 extension Config {
-    static func forApplicationDefault(name: String, packagePath: FilePath) -> Self {
+    static func forApplicationDefault(name: String, packagePath: FilePath, applicationPath: FilePath) -> Self {
         Self.init(
             project: .application(
                 name: name,
@@ -53,8 +53,8 @@ extension Config {
                 ),
                 resources: [
                     .`WorkspaceSettings.xcsettings`(name: name),
-                    .`.gitignore`(path: "Sources"),
-                    .`.gitignore`(path: "Resources"),
+                    .`.gitkeep`(path: applicationPath.appending("Sources").string),
+                    .`.gitkeep`(path: applicationPath.appending("Resources").string),
                     .`.swift-format`,
                 ],
             ),
@@ -233,7 +233,7 @@ extension Config.Project.File {
         )
     }
 
-    static func `.gitignore`(path: String) -> Self {
-        Self.init(filePath: FilePath(path).appending(".gitignore").string, content: "")
+    static func `.gitkeep`(path: String) -> Self {
+        Self.init(filePath: FilePath(path).appending(".gitkeep").string, content: "")
     }
 }

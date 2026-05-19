@@ -27,6 +27,14 @@ extension FilePath {
 
         return FilePath(root: root, up + down)
     }
+
+    func isDirectory(fileManager: FileManager = .default) throws -> Bool? {
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: string, isDirectory: &isDirectory) else {
+            return nil
+        }
+        return isDirectory.boolValue
+    }
 }
 
 extension URL {
