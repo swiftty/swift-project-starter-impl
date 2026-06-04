@@ -13,7 +13,7 @@ let package = Package(
         .plugin(name: "swift-project-starter-plugin", targets: ["swift-project-starter-plugin"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.8.2"),
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.1"),
         .package(url: "https://github.com/apple/swift-system", from: "1.6.4"),
         .package(url: "https://github.com/apple/swift-log", from: "1.12.0"),
