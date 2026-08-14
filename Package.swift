@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", from: "1.7.1"),
         .package(url: "https://github.com/swiftlang/swift-syntax", from: "603.0.1"),
-        .package(url: "https://github.com/apple/swift-system", from: "1.6.4"),
+        .package(url: "https://github.com/apple/swift-system", from: "1.8.1"),
         .package(url: "https://github.com/apple/swift-log", from: "1.12.0"),
         // AUTO GENERATED ↓: swift-project-starter: deps
         .package(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0")
