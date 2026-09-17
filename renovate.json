@@ -9,7 +9,9 @@
     {
       "customType": "regex",
       "description": "Update default packages in Config+default.swift",
-      "fileMatch": ["Config\\+default\\.swift"],
+      "managerFilePatterns": [
+        "/Config\\+default\\.swift/"
+      ],
       "datasourceTemplate": "github-tags",
       "matchStrings": [
         "url:\\s\"https://github\\.com/(?<depName>[^\"]+)\",\\s(?<currentValue>from:\\s\"[^\"]+\")"
