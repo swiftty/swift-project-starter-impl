@@ -39,3 +39,17 @@ jobs:
       - name: Run tests
         run: |
           swift test
+
+  status-check:
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    steps:
+      - name: Check status
+        run: |
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "All builds succeeded"
+          else
+            echo "Some builds failed"
+            exit 1
+          fi
