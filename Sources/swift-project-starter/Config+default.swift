@@ -59,7 +59,7 @@ extension Config {
                 ],
             ),
             dependencies: [
-                .init(url: "https://github.com/swiftty/XcodeGenBinary", from: "2.45.3"),
+                .init(url: "https://github.com/swiftty/XcodeGenBinary", from: "2.46.0"),
                 .init(url: "https://github.com/swiftty/swift-format-plugin", from: "1.0.0"),
             ],
             swiftSettings: [
