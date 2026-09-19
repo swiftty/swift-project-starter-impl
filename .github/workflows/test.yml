@@ -17,7 +17,7 @@ jobs:
             xcode: "/Applications/Xcode_26.6.app"
           - os: ubuntu-latest
             # renovate: datasource=docker
-            container: swift:6.3
+            container: swift:6.4
 
     runs-on: ${{ matrix.os }}
     container:
